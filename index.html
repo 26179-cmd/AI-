@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI PATHFINDER - AI 맞춤형 진로 탐색 플랫폼</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js for visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Glassmorphism Classes */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    
+    .dark-glass-card {
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Animations */
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+    .animate-pulse-slow {
+      animation: pulse-slow 8s infinite ease-in-out;
+    }
+
+    /* Fade-in Animation */
+    .fade-in {
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+  <!-- Background Decorative Blobs -->
+  <div class="fixed inset-0 overflow-hidden -z-10 pointer-events-none">
+    <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-400/10 blur-[120px] animate-pulse-slow"></div>
+    <div class="absolute top-[40%] -right-[10%] w-[60%] h-[60%] rounded-full bg-indigo-400/10 blur-[150px] animate-pulse-slow" style="animation-delay: 2s;"></div>
+    <div class="absolute -bottom-[10%] left-[20%] w-[45%] h-[45%] rounded-full bg-violet-400/10 blur-[100px] animate-pulse-slow" style="animation-delay: 4s;"></div>
+  </div>
+
+  <!-- Header Section -->
+  <header class="sticky top-0 z-40 w-full glass-card border-b border-slate-200/80 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <!-- Logo -->
+      <a href="#" onclick="navigateTo('home')" class="flex items-center space-x-2 group">
+        <div class="p-2 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl text-white shadow-md shadow-blue-500/20 transform group-hover:scale-105 transition-all">
+          <i data-lucide="compass" class="w-6 h-6"></i>
+        </div>
+        <span class="text-xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">AI PATHFINDER</span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden md:flex items-center space-x-1">
+        <button onclick="navigateTo('home')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition-all flex items-center gap-1.5" data-page="home">
+          <i data-lucide="home" class="w-4 h-4"></i>홈
+        </button>
+        <button onclick="navigateTo('test')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition-all flex items-center gap-1.5" data-page="test">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>진로 검사
+        </button>
+        <button onclick="navigateTo('careers')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition-all flex items-center gap-1.5" data-page="careers">
+          <i data-lucide="briefcase" class="w-4 h-4"></i>직업 탐색
+        </button>
+        <button onclick="navigateTo('roadmap')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition-all flex items-center gap-1.5" data-page="roadmap">
+          <i data-lucide="milestone" class="w-4 h-4"></i>로드맵 & 목표
+        </button>
+        <button onclick="navigateTo('chatbot')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition-all flex items-center gap-1.5" data-page="chatbot">
+          <i data-lucide="message-square-code" class="w-4 h-4"></i>AI 멘토링
+        </button>
+        <button onclick="navigateTo('about')" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-blue-600 hover:bg-slate-100 transition-all flex items-center gap-1.5" data-page="about">
+          <i data-lucide="info" class="w-4 h-4"></i>소개
+        </button>
+      </nav>
+
+      <!-- Favorites / Menu Toggle -->
+      <div class="flex items-center space-x-3">
+        <!-- Quick Bookmark Dropdown Button -->
+        <button onclick="toggleBookmarks()" class="relative p-2 text-slate-600 hover:text-rose-500 hover:bg-slate-100 rounded-lg transition-all" title="즐겨찾기">
+          <i data-lucide="heart" class="w-5.5 h-5.5"></i>
+          <span id="bookmark-count" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+        </button>
+
+        <!-- Mobile Navigation Menu -->
+        <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-all" id="mobile-menu-btn">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bookmarks Side Dropdown -->
+    <div id="bookmarks-dropdown" class="hidden absolute right-4 top-18 w-80 glass-card rounded-2xl shadow-xl border border-slate-200/80 p-4 z-50 fade-in">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h4 class="font-bold text-slate-800 flex items-center gap-1.5">
+          <i data-lucide="heart" class="w-4 h-4 text-rose-500 fill-rose-500"></i> 내가 찜한 직업
+        </h4>
+        <button onclick="toggleBookmarks()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="bookmarks-list" class="mt-3 max-h-60 overflow-y-auto space-y-2 text-sm text-slate-500 text-center py-4">
+        찜한 직업이 없습니다. 마음에 드는 직업을 추가해 보세요!
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Panel -->
+    <div id="mobile-menu" class="hidden md:hidden glass-card border-b border-slate-200/80 px-4 py-3 space-y-1">
+      <button onclick="navigateTo('home')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 flex items-center gap-2">
+        <i data-lucide="home" class="w-4 h-4 text-blue-600"></i>홈
+      </button>
+      <button onclick="navigateTo('test')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 flex items-center gap-2">
+        <i data-lucide="clipboard-list" class="w-4 h-4 text-blue-600"></i>진로 검사
+      </button>
+      <button onclick="navigateTo('careers')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 flex items-center gap-2">
+        <i data-lucide="briefcase" class="w-4 h-4 text-blue-600"></i>직업 탐색
+      </button>
+      <button onclick="navigateTo('roadmap')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 flex items-center gap-2">
+        <i data-lucide="milestone" class="w-4 h-4 text-blue-600"></i>로드맵 & 목표
+      </button>
+      <button onclick="navigateTo('chatbot')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 flex items-center gap-2">
+        <i data-lucide="message-square-code" class="w-4 h-4 text-blue-600"></i>AI 멘토링
+      </button>
+      <button onclick="navigateTo('about')" class="w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 flex items-center gap-2">
+        <i data-lucide="info" class="w-4 h-4 text-blue-600"></i>소개
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- PAGE: Home -->
+    <div id="page-home" class="page-view space-y-12">
+      <!-- Hero Section -->
+      <div class="text-center py-12 md:py-20 max-w-3xl mx-auto space-y-6">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold uppercase tracking-wider">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> AI-POWERED CAREER NAVIGATOR
+        </div>
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 leading-tight">
+          당신의 숨겨진 성향을 찾아<br>
+          <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">완벽한 커리어</span>를 그리세요
+        </h1>
+        <p class="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
+          AI 성향 탐색 검사를 통해 나에게 적합한 RIASEC 유형을 분석하고, 세계 최고 수준의 생성형 AI가 설계해 주는 고유의 직업 추천과 맞춤형 학습 로드맵을 경험하세요.
+        </p>
+        <div class="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button onclick="navigateTo('test')" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+            <i data-lucide="play-circle" class="w-5 h-5"></i> 3분 AI 진로 검사 시작
+          </button>
+          <button onclick="navigateTo('careers')" class="w-full sm:w-auto px-8 py-4 bg-white text-slate-800 border border-slate-200 font-bold rounded-2xl hover:bg-slate-50 shadow-sm hover:shadow transition-all flex items-center justify-center gap-2">
+            <i data-lucide="search" class="w-5 h-5"></i> 추천 직업 탐색하기
+          </button>
+        </div>
+      </div>
+
+      <!-- Feature Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Feature 1 -->
+        <div class="glass-card rounded-3xl p-6 border border-slate-200/60 shadow-sm hover:shadow-md transition-all group">
+          <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl w-fit mb-5 group-hover:scale-110 transition-transform">
+            <i data-lucide="brain-circuit" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-950 mb-2">정밀 성향 분석</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            홀랜드(RIASEC) 이론 기반 20문항을 통해 사용자의 실제 흥미, 강점, 성격 요소를 과학적 알고리즘으로 매핑합니다.
+          </p>
+        </div>
+        <!-- Feature 2 -->
+        <div class="glass-card rounded-3xl p-6 border border-slate-200/60 shadow-sm hover:shadow-md transition-all group">
+          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-2xl w-fit mb-5 group-hover:scale-110 transition-transform">
+            <i data-lucide="git-branch" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-950 mb-2">실시간 AI 학습 로드맵</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            분석 결과에 따른 추천 직업마다 필요한 세부 역량, 자격증, 학습 단계, 추천 프로젝트 및 도서 리스트를 제시합니다.
+          </p>
+        </div>
+        <!-- Feature 3 -->
+        <div class="glass-card rounded-3xl p-6 border border-slate-200/60 shadow-sm hover:shadow-md transition-all group">
+          <div class="p-3 bg-violet-50 text-violet-600 rounded-2xl w-fit mb-5 group-hover:scale-110 transition-transform">
+            <i data-lucide="bot" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-xl font-bold text-slate-950 mb-2">1:1 맞춤형 AI 멘토링</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            선택한 로드맵이나 커리어 고민에 대해 24시간 실시간 소통 가능한 진로 상담 챗봇에게 따뜻한 조언과 정보를 구하세요.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Test (Career Test) -->
+    <div id="page-test" class="page-view hidden space-y-8">
+      <div class="max-w-3xl mx-auto space-y-6">
+        <div class="text-center space-y-2">
+          <h2 class="text-3xl font-extrabold text-slate-950">홀랜드 성향 & 흥미 진단 검사</h2>
+          <p class="text-slate-500">자신의 생각에 가장 가깝고 어울리는 선택지를 부담 없이 골라보세요. (약 3분 소요)</p>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-200/80 flex items-center justify-between">
+          <span class="text-sm font-semibold text-slate-500" id="test-progress-text">질문 1 / 20</span>
+          <div class="w-3/4 bg-slate-200 rounded-full h-3.5 overflow-hidden">
+            <div id="test-progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-full rounded-full transition-all duration-300" style="width: 5%"></div>
+          </div>
+        </div>
+
+        <!-- Question Box -->
+        <div id="question-card" class="glass-card p-8 rounded-3xl border border-slate-200/80 shadow-md space-y-6 fade-in">
+          <div class="flex items-start gap-4">
+            <span class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm" id="question-num">1</span>
+            <p class="text-xl font-bold text-slate-900 leading-relaxed pt-0.5" id="question-text">
+              새로운 아이디어나 창의적인 프로젝트를 직접 구상하고 실현하는 것을 좋아한다.
+            </p>
+          </div>
+
+          <!-- Answer options (Likert scale) -->
+          <div class="grid grid-cols-1 gap-3.5 pt-4">
+            <button onclick="handleAnswer(5)" class="option-btn text-left p-4 rounded-2xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition-all font-semibold flex justify-between items-center group">
+              <span>매우 그렇다</span>
+              <span class="text-slate-400 group-hover:text-blue-500 text-xs">5점</span>
+            </button>
+            <button onclick="handleAnswer(4)" class="option-btn text-left p-4 rounded-2xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition-all font-semibold flex justify-between items-center group">
+              <span>대체로 그렇다</span>
+              <span class="text-slate-400 group-hover:text-blue-500 text-xs">4점</span>
+            </button>
+            <button onclick="handleAnswer(3)" class="option-btn text-left p-4 rounded-2xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition-all font-semibold flex justify-between items-center group">
+              <span>보통이다</span>
+              <span class="text-slate-400 group-hover:text-blue-500 text-xs">3점</span>
+            </button>
+            <button onclick="handleAnswer(2)" class="option-btn text-left p-4 rounded-2xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition-all font-semibold flex justify-between items-center group">
+              <span>별로 그렇지 않다</span>
+              <span class="text-slate-400 group-hover:text-blue-500 text-xs">2점</span>
+            </button>
+            <button onclick="handleAnswer(1)" class="option-btn text-left p-4 rounded-2xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 transition-all font-semibold flex justify-between items-center group">
+              <span>전혀 그렇지 않다</span>
+              <span class="text-slate-400 group-hover:text-blue-500 text-xs">1점</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between">
+          <button id="prev-question-btn" onclick="prevQuestion()" class="px-6 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all flex items-center gap-1.5 opacity-50 cursor-not-allowed" disabled>
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> 이전 질문
+          </button>
+          <span class="text-xs text-slate-400 self-center">응답 시 다음 질문으로 자동 이동됩니다.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Result (Report & Analysis) -->
+    <div id="page-result" class="page-view hidden space-y-8">
+      <div class="max-w-5xl mx-auto space-y-8">
+        <!-- Top Title & Share Card -->
+        <div class="glass-card p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div class="space-y-2">
+            <span class="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200">검사 완료</span>
+            <h2 class="text-3xl font-extrabold text-slate-900">당신의 AI 진로 리포트</h2>
+            <p class="text-slate-500">당신의 성향 분석 결과와 그에 알맞은 최적의 유망 직업군 매칭 보고서입니다.</p>
+          </div>
+          <div class="flex flex-wrap gap-2.5">
+            <button onclick="shareResults()" class="px-5 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl transition-all flex items-center gap-2 text-sm">
+              <i data-lucide="share-2" class="w-4 h-4"></i> 결과 공유
+            </button>
+            <button onclick="window.print()" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all flex items-center gap-2 text-sm">
+              <i data-lucide="printer" class="w-4 h-4"></i> PDF 인쇄
+            </button>
+          </div>
+        </div>
+
+        <!-- RIASEC Type Description & Chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Type Description -->
+          <div class="lg:col-span-2 bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-col justify-between space-y-6">
+            <div class="space-y-4">
+              <span class="text-indigo-300 font-semibold tracking-wider uppercase text-sm">최종 진단 성향 코드</span>
+              <h3 class="text-4xl font-extrabold" id="riasec-code-title">예술가형 - 탐구가형 (AI)</h3>
+              <p class="text-slate-200 text-sm leading-relaxed" id="riasec-description">
+                당신은 사물, 기계, 그리고 자연과 상호작용하기보다, 논리적이고 호기심 넘치며 창의적인 영역에서 아이디어를 형상화하는 것을 무척이나 동경합니다. 추상적 문제를 탐구하고 세상을 참신하게 해석하는 재능을 갖추고 있습니다.
+              </p>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-3 pt-4 border-t border-white/10 text-center">
+              <div class="p-3 rounded-2xl bg-white/5 border border-white/5">
+                <span class="block text-xs text-indigo-200">1순위 코드</span>
+                <span class="text-lg font-bold text-white mt-1 block" id="code-top-1">A</span>
+              </div>
+              <div class="p-3 rounded-2xl bg-white/5 border border-white/5">
+                <span class="block text-xs text-indigo-200">2순위 코드</span>
+                <span class="text-lg font-bold text-white mt-1 block" id="code-top-2">I</span>
+              </div>
+              <div class="p-3 rounded-2xl bg-white/5 border border-white/5">
+                <span class="block text-xs text-indigo-200">성향 강도</span>
+                <span class="text-lg font-bold text-white mt-1 block" id="code-strength">높음</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Radar Chart Visualizer -->
+          <div class="glass-card p-6 rounded-3xl border border-slate-200/80 shadow-md flex flex-col justify-between items-center">
+            <h4 class="font-bold text-slate-800 text-sm mb-2 text-left w-full">성향 오각형/육각형 모델</h4>
+            <div class="w-full max-w-[240px] aspect-square flex items-center justify-center">
+              <canvas id="riasecChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Matching Recommended Careers (AI Realtime + Local fallback) -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-6 h-6 text-indigo-600"></i> AI 추천 맞춤형 유망 직업군
+            </h3>
+            <span class="text-xs text-slate-500">Gemini 2.5 Flash가 추천해 주는 특화 직업군</span>
+          </div>
+
+          <!-- AI Loading State -->
+          <div id="ai-loading" class="hidden glass-card p-12 rounded-3xl border border-slate-200/80 text-center space-y-4">
+            <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p class="text-slate-600 font-semibold">Gemini AI가 당신의 성향을 분석하여 맞춤 직업군 및 학습 로드맵을 생성하고 있습니다...</p>
+            <p class="text-xs text-slate-400">약 5초 ~ 10초 정도 소요될 수 있습니다.</p>
+          </div>
+
+          <!-- AI Failed State -->
+          <div id="ai-failed-alert" class="hidden bg-rose-50 border border-rose-200 p-5 rounded-2xl text-rose-800 text-sm space-y-2">
+            <p class="font-semibold">AI 추천 결과를 가져오는데 실패했습니다. (API Key가 없거나 인터넷이 차단되었습니다)</p>
+            <p class="text-xs text-rose-600">기본 장착된 알고리즘을 사용한 프리셋 추천 직업을 제공해 드립니다. 여전히 우수한 진로 탐색을 이용하실 수 있습니다.</p>
+          </div>
+
+          <!-- Recommendation Container (Grid) -->
+          <div id="recommended-careers-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Dynamic career cards will be rendered here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Careers Directory & Compare -->
+    <div id="page-careers" class="page-view hidden space-y-8">
+      <div class="space-y-6">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-3xl font-extrabold text-slate-900">직업 사전 및 비교 분석</h2>
+            <p class="text-slate-500">다양한 유망 직업들의 요구 기술, 연봉, 전망을 둘러보고 서로 비교해보세요.</p>
+          </div>
+
+          <!-- Compare Box Summary (floating/sticky top in page) -->
+          <div id="compare-indicator" class="hidden flex items-center gap-3 bg-blue-50 border border-blue-200 px-4 py-2.5 rounded-2xl text-sm text-blue-800">
+            <span class="font-semibold">비교 대상이 <span id="compare-count" class="font-bold text-blue-600">0</span>개 선택됨</span>
+            <button onclick="openCompareModal()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition-all">
+              비교 화면 보기
+            </button>
+            <button onclick="clearCompareList()" class="text-slate-400 hover:text-slate-600 text-xs">초기화</button>
+          </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="glass-card p-4 rounded-2xl border border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Search input -->
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3.5"></i>
+            <input type="text" id="career-search-input" oninput="filterCareers()" placeholder="직업명, 태그 또는 주요 기술 검색" class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <!-- Type Select -->
+          <div>
+            <select id="career-riasec-filter" onchange="filterCareers()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">전체 RIASEC 계열 보기</option>
+              <option value="R">R - 현실형 (실제 작업, 물리적 도구)</option>
+              <option value="I">I - 탐구형 (분석, 연구, 논리 해결)</option>
+              <option value="A">A - 예술형 (상상력, 표현, 창작)</option>
+              <option value="S">S - 사회형 (교육, 봉사, 소통)</option>
+              <option value="E">E - 진취형 (설득, 리더십, 기업가)</option>
+              <option value="C">C - 관습형 (체계화, 데이터 관리)</option>
+            </select>
+          </div>
+          <!-- Sort -->
+          <div>
+            <select id="career-sort-filter" onchange="filterCareers()" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="default">기본 추천순</option>
+              <option value="salary">연봉 높은 순</option>
+              <option value="growth">성장성 높은 순</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Main Directory Listing -->
+        <div id="careers-directory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Dynamic contents -->
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Roadmap & Goal Management -->
+    <div id="page-roadmap" class="page-view hidden space-y-8">
+      <div class="max-w-4xl mx-auto space-y-8">
+        <div class="glass-card p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-md">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <h2 class="text-3xl font-extrabold text-slate-950 flex items-center gap-2">
+                <i data-lucide="milestone" class="text-blue-600 w-8 h-8"></i> 맞춤형 커리어 로드맵
+              </h2>
+              <p class="text-slate-500">당신이 가꾸어 나갈 목표 직업을 설정하고, 단계별 학습 여정을 체크하며 꿈에 접근해 보세요.</p>
+            </div>
+            <!-- Target Career Select -->
+            <div class="w-full sm:w-auto">
+              <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">탐색 타겟 변경</label>
+              <select id="roadmap-target-select" onchange="loadTargetRoadmap(this.value)" class="w-full sm:w-60 px-3.5 py-2 rounded-xl border border-slate-200 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <!-- Loaded dynamically -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Target Intro & Core Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="md:col-span-2 glass-card p-6 rounded-3xl border border-slate-200/80 flex flex-col justify-between space-y-4">
+            <div>
+              <span class="px-2.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded-full border border-blue-200" id="roadmap-riasec">A - 예술형</span>
+              <h3 class="text-2xl font-extrabold text-slate-900 mt-2" id="roadmap-title">UI/UX 디자이너</h3>
+              <p class="text-slate-600 text-sm mt-2 leading-relaxed" id="roadmap-description">사용자 관점에서 인터페이스를 기획하고, 세련된 비주얼과 편리한 인터렉션을 설계하는 창의적 전문가입니다.</p>
+            </div>
+            <div class="flex flex-wrap gap-2 pt-2" id="roadmap-tags">
+              <span class="px-2 py-1 bg-slate-100 rounded-lg text-xs font-semibold text-slate-500">#Figma</span>
+            </div>
+          </div>
+
+          <div class="glass-card p-6 rounded-3xl border border-slate-200/80 flex flex-col justify-between">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">로드맵 달성도</span>
+            <div class="relative w-28 h-28 mx-auto flex items-center justify-center">
+              <!-- Simple circular SVG indicator -->
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <path class="text-slate-100" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path id="roadmap-circle-progress" class="text-blue-600 transition-all duration-500" stroke-width="3" stroke-dasharray="0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              </svg>
+              <div class="absolute text-center">
+                <span class="text-2xl font-extrabold text-slate-950" id="roadmap-pct">0%</span>
+              </div>
+            </div>
+            <div class="text-center text-xs text-slate-500 mt-2">
+              <span id="roadmap-done-count">0</span> / <span id="roadmap-total-count">4</span>개 과제 클리어
+            </div>
+          </div>
+        </div>
+
+        <!-- Roadmap Timeline Stages & Goals -->
+        <div class="space-y-6">
+          <h3 class="text-xl font-bold text-slate-900">단계별 액션 플랜 & 목표 리스트</h3>
+          <div id="roadmap-timeline-container" class="relative pl-6 border-l-2 border-slate-200 space-y-8">
+            <!-- Dynamic timeline blocks -->
+          </div>
+        </div>
+
+        <!-- Curated Learning Materials & Projects -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+          <!-- Suggested Lectures & Books -->
+          <div class="glass-card p-6 rounded-3xl border border-slate-200/80 space-y-4">
+            <h4 class="font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="book-open" class="text-indigo-600 w-5 h-5"></i> 추천 학습 자료 및 도서
+            </h4>
+            <ul class="space-y-3" id="suggested-materials-list">
+              <!-- Dynamic -->
+            </ul>
+          </div>
+
+          <!-- Recommended Hands-on Projects -->
+          <div class="glass-card p-6 rounded-3xl border border-slate-200/80 space-y-4">
+            <h4 class="font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="folder-git-2" class="text-indigo-600 w-5 h-5"></i> 실무 포트폴리오 프로젝트 추천
+            </h4>
+            <div class="space-y-3.5" id="suggested-projects-list">
+              <!-- Dynamic -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: AI Chatbot Mentor -->
+    <div id="page-chatbot" class="page-view hidden">
+      <div class="max-w-4xl mx-auto h-[calc(100vh-14rem)] min-h-[500px] flex flex-col glass-card rounded-3xl border border-slate-200/80 shadow-md overflow-hidden">
+        <!-- Chatbot Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="p-2 bg-white/10 rounded-xl">
+              <i data-lucide="bot" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm">AI 커리어 멘토</h3>
+              <div class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-[11px] text-blue-100">실시간 상담 준비 완료</span>
+              </div>
+            </div>
+          </div>
+          <!-- Quick Prompts Buttons -->
+          <div class="hidden sm:flex items-center space-x-2">
+            <button onclick="sendQuickPrompt('비전공자 개발자 로드맵 알려줘')" class="text-xs bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg font-semibold transition-all">비전공자 가이드</button>
+            <button onclick="sendQuickPrompt('요즘 뜨는 IT 직업군은 뭐야?')" class="text-xs bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-lg font-semibold transition-all">유망 IT 직업</button>
+          </div>
+        </div>
+
+        <!-- Message logs -->
+        <div id="chat-messages-container" class="flex-grow p-6 overflow-y-auto space-y-4 bg-slate-50/50">
+          <!-- Initial welcome -->
+          <div class="flex items-start gap-3">
+            <div class="p-2 bg-blue-100 text-blue-700 rounded-xl flex-shrink-0">
+              <i data-lucide="bot" class="w-5 h-5"></i>
+            </div>
+            <div class="bg-white px-4 py-3 rounded-2xl rounded-tl-none border border-slate-200 max-w-[80%] shadow-sm text-sm text-slate-700 leading-relaxed space-y-2">
+              <p>반가워요! 저는 당신의 꿈을 응원하는 <strong>AI 진로 멘토</strong>입니다.</p>
+              <p>진로 검사 결과에 따른 상세 로드맵, 자격증, 취업 고민, 면접 준비법 등 어떤 고민이든 자유롭게 질문해주세요. 친절히 상담해 드리겠습니다!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat input area -->
+        <form id="chat-input-form" onsubmit="handleSendChat(event)" class="p-3 border-t border-slate-200/80 bg-white flex items-center gap-2">
+          <input type="text" id="chat-input" placeholder="질문을 입력하세요... (예: 마케터가 되기 위한 핵심 스킬은 뭐야?)" class="flex-grow px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50 focus:bg-white transition-all">
+          <button type="submit" class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all font-bold text-sm flex items-center gap-1.5 shadow shadow-blue-500/10">
+            <span>전송</span> <i data-lucide="send" class="w-4 h-4"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- PAGE: About (Info) -->
+    <div id="page-about" class="page-view hidden max-w-4xl mx-auto space-y-12">
+      <div class="text-center max-w-2xl mx-auto space-y-4">
+        <h2 class="text-3xl font-extrabold text-slate-900">About AI PATHFINDER</h2>
+        <p class="text-slate-500">우리는 개개인이 타고난 재능과 관심사를 잊지 않고, 인생의 여정에서 가장 적합한 직업적 가치를 꽃피울 수 있도록 돕습니다.</p>
+      </div>
+
+      <!-- Theory and engine intro -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="glass-card p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+          <h3 class="text-xl font-bold text-slate-950 flex items-center gap-2">
+            <i data-lucide="graduation-cap" class="text-blue-600 w-5 h-5"></i> 홀랜드 적성 이론 (RIASEC)
+          </h3>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            미국의 직업심리학자 존 홀랜드(John Holland)에 의해 정립된 직업 흥미 분석 이론입니다. 개인의 성격을 실용(R), 탐구(I), 예술(A), 사회(S), 기업(E), 관습(C)의 6개 성향 코드로 분류하여 가장 자연스럽게 능률을 발휘하고 흥미를 느낄 수 있는 직업 환경을 매치합니다.
+          </p>
+        </div>
+
+        <div class="glass-card p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+          <h3 class="text-xl font-bold text-slate-950 flex items-center gap-2">
+            <i data-lucide="cpu" class="text-blue-600 w-5 h-5"></i> 차세대 AI 분석 엔진
+          </h3>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            사용자의 진로 검사 다차원 매칭 데이터를 구글의 고성능 대형 언어 모델 <span class="font-bold text-indigo-600">Gemini 2.5 Flash</span>에 주입합니다. 이를 통해 상투적이지 않은 맞춤형 유망 신생 직업과 10단계의 지능형 마일스톤 학습 계획, 면접 가이드 및 유용한 실전 프로젝트까지 실시간 가공해 냅니다.
+          </p>
+        </div>
+      </div>
+
+      <!-- Creator Statement -->
+      <div class="glass-card p-8 rounded-3xl border border-slate-200/80 text-center space-y-4 max-w-xl mx-auto">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Platform Creator</p>
+        <p class="text-slate-700 text-sm italic">
+          "진정한 몰입은 내면에 내재된 흥미의 결을 올바로 알아차리는 것에서 출범합니다. 이 작은 탐색기가 여러분의 다채로운 미래를 비추는 등대가 되기를 기대합니다."
+        </p>
+        <div class="pt-2">
+          <span class="text-sm font-bold text-slate-900 block">AI Pathfinder 개발팀 배상</span>
+          <span class="text-xs text-slate-400 mt-1 block">Supported by Gemini 2.5 Pro & Flash Engines</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer Section -->
+  <footer class="border-t border-slate-200 bg-white py-8 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+      <div>
+        <span class="text-sm font-bold text-slate-800">AI PATHFINDER</span>
+        <span class="text-xs text-slate-400 block mt-1">© 2026 AI Pathfinder. All Rights Reserved.</span>
+      </div>
+      <div class="flex items-center space-x-4 text-xs text-slate-400">
+        <a href="#" onclick="navigateTo('about')" class="hover:text-blue-600 transition-colors">이용약관</a>
+        <a href="#" onclick="navigateTo('about')" class="hover:text-blue-600 transition-colors">개인정보처리방침</a>
+        <a href="#" onclick="navigateTo('about')" class="hover:text-blue-600 transition-colors">기술스택 도움말</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JOB COMPARE MODAL -->
+  <div id="compare-modal" class="hidden fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 sm:p-6">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="closeCompareModal()"></div>
+    <div class="glass-card rounded-3xl border border-white/20 shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-y-auto z-10 p-6 sm:p-8 flex flex-col space-y-6 fade-in">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+        <h3 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <i data-lucide="columns-4" class="text-blue-600 w-6 h-6"></i> 직업 비교 분석 리포트
+        </h3>
+        <button onclick="closeCompareModal()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- Compare Table / Flex Columns -->
+      <div class="overflow-x-auto w-full">
+        <table class="w-full text-sm text-left border-collapse" id="compare-table">
+          <!-- Populated in JS -->
+        </table>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+        <button onclick="clearCompareList(); closeCompareModal();" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-all">
+          비교 항목 모두 비우기
+        </button>
+        <button onclick="closeCompareModal()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs transition-all">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IN-APP POPUP NOTIFICATION MODAL (Alternative for alert) -->
+  <div id="app-toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-5 py-3.5 bg-slate-900/95 text-white rounded-2xl shadow-xl text-sm border border-white/10 animate-pulse-slow">
+    <i data-lucide="info" class="w-5 h-5 text-blue-400" id="toast-icon"></i>
+    <span id="toast-message" class="font-medium">알림 메시지</span>
+  </div>
+
+  <!-- MOCK DATABASES & WEBAPP LOGIC -->
+  <script>
+    // ==========================================
+    // 1. DATA DEFINITIONS
+    // ==========================================
+
+    // Holland RIASEC Test Questions (20 Questions with balanced coding)
+    // Types: R(Realist), I(Investigative), A(Artistic), S(Social), E(Enterprise), C(Conventional)
+    const questionsDatabase = [
+      { id: 1, text: "새로운 물건을 조립하거나 기계 장치를 수리하는 일이 매우 재미있다.", type: "R" },
+      { id: 2, text: "수학 문제나 물리법칙, 자연현상을 탐구하고 심도 깊게 증명하고 싶다.", type: "I" },
+      { id: 3, text: "그림, 작곡, 연극 대본 작성 등 나만의 창작물을 세상에 드러내길 갈망한다.", type: "A" },
+      { id: 4, text: "타인의 정서적 상처에 귀 기울이고, 타인의 성장을 상담이나 교육으로 돕고 싶다.", type: "S" },
+      { id: 5, text: "새로운 비즈니스 아이템을 기획해 팀을 이끌며 높은 매출 성과를 견인하고 싶다.", type: "E" },
+      { id: 6, text: "데이터를 일정한 순서대로 엑셀에 입력하고 구조화하여 깔끔하게 정리하는 걸 좋아한다.", type: "C" },
+      { id: 7, text: "컴퓨터 하드웨어를 뜯어보거나 가구, 기계를 분해해 원리를 살피는 편이다.", type: "R" },
+      { id: 8, text: "복잡한 프로그램 오류를 찾아내기 위해 디버깅하는 지적인 몰입 과정이 짜릿하다.", type: "I" },
+      { id: 9, text: "독특하고 파격적인 개성을 가진 패션이나 비주얼 레이아웃을 고안해 자랑스럽다.", type: "A" },
+      { id: 10, text: "팀 프로젝트 시, 의견 조율이 안 되는 조원들을 다독이고 중재하는 조력가 역할을 자처한다.", type: "S" },
+      { id: 11, text: "주도권을 잡고 프레젠테이션을 하여 수많은 사람을 설득하고 납득시킬 때 쾌감을 느낀다.", type: "E" },
+      { id: 12, text: "일정 및 지출 계획이 타임라인 단위로 빈틈없이 통제될 때 깊은 안도감을 느낀다.", type: "C" },
+      { id: 13, text: "야외에서 식물을 원예하거나 야생동물을 보살피고 실험하는 일이 적성에 맞는다.", type: "R" },
+      { id: 14, text: "역사적 미스터리나 현대 질병의 발병 메커니즘을 규명하는 최신 학술지를 수색한다.", type: "I" },
+      { id: 15, text: "자유분방한 분위기에서 기존의 규칙을 깨며, 나만의 예술적 세계관을 추구한다.", type: "A" },
+      { id: 16, text: "소외된 사람들에게 봉사하고, 세상을 따뜻하게 보살피는 사회적 운동에 공감한다.", type: "S" },
+      { id: 17, text: "인플루언서처럼 시장의 인기를 타깃하여 영향력 있는 트렌드를 이끄는 기획자가 꿈이다.", type: "E" },
+      { id: 18, text: "약관을 세세히 정독하거나 세법, 회계 원칙을 정확하게 적용하여 세무 기록을 검증하는 걸 선호한다.", type: "C" },
+      { id: 19, text: "설계 도면을 그리거나 목공 툴, 정밀 장비를 만져 실물을 빌딩하는 게 즐겁다.", type: "R" },
+      { id: 20, text: "방대한 논문 분석과 시각화된 실험 증빙을 바탕으로 미지 영역에 가설을 검증하고 싶다.", type: "I" }
+    ];
+
+    // Comprehensive Local Careers DB (Fallback in case of no API key / API limit)
+    const careersDatabase = [
+      {
+        id: "car_1",
+        name: "AI 윤리학 및 정렬 엔지니어",
+        type: "I",
+        desc: "초거대 AI 모델이 인류의 규범을 위배하지 않도록 가치관 정렬을 연구하고 시스템을 검증합니다.",
+        tags: ["AI", "윤리", "연구", "데이터"],
+        salary: "8,500만원",
+        growth: "98%",
+        demand: "최상",
+        skills: ["Machine Learning", "Philosophy", "Python", "RLHF"],
+        roadmap: [
+          { step: "1단계: 기초 컴퓨터 공학 및 철학", desc: "알고리즘 구조 및 인간 가치론, 비평 철학 학습" },
+          { step: "2단계: 기계학습 모델 훈련", desc: "GPT 등 대형 언어 모델의 파인튜닝 지식 배양" },
+          { step: "3단계: 안전성 정렬 프레임워크", desc: "RLHF, 레드팀 테스트 실무 적용 및 프로토콜 설계" },
+          { step: "4단계: AI 컴플라이언스 구축", desc: "글로벌 규제 통과 및 윤리 가이드라인 설계 실무 참여" }
+        ],
+        materials: [
+          { type: "강의", title: "인공지능 규제와 안전성 (Stanford Coursera)" },
+          { type: "도서", title: "AI의 시대와 인간의 규율 (맥스 테그마크 저)" }
+        ],
+        projects: [
+          { title: "AI 답변 편향 분석 및 필터 시스템 설계", desc: "정규식 및 임베딩 벡터 비교를 통한 안전망 구현" }
+        ]
+      },
+      {
+        id: "car_2",
+        name: "메타버스 건축가 & 월드 디자이너",
+        type: "A",
+        desc: "가상현실과 가상 부동산 속에서 혁신적인 주거, 상업, 커뮤니티 입체 공간들을 설계하고 예술을 입힙니다.",
+        tags: ["메타버스", "3D", "디자인", "VR"],
+        salary: "6,200만원",
+        growth: "85%",
+        demand: "상",
+        skills: ["Blender", "Unity3D", "Unreal Engine", "Architecture Design"],
+        roadmap: [
+          { step: "1단계: 3D 기본 모델링 입문", desc: "Blender를 이용한 로우폴리곤 오브젝트 제작 기법 습득" },
+          { step: "2단계: 게임엔진 씬 빌딩", desc: "Unity 또는 Unreal 엔진 활용 라이트맵 및 기하학 구성" },
+          { step: "3단계: 인터렉션 디자인", desc: "C# 스크립트 작성 및 아바타 충돌 체크 등 상호작용 설계" },
+          { step: "4단계: 대규모 월드 최적화", desc: "오클루전 컬링 등을 활용해 동시접속 렉 개선 및 출시" }
+        ],
+        materials: [
+          { type: "강의", title: "Unity 기반 가상 공간 구축 마스터클래스" },
+          { type: "도서", title: "메타버스의 공간 디자인 트렌드 (공간예술 출판)" }
+        ],
+        projects: [
+          { title: "SF 컨셉의 사이버펑크 갤러리 랜드 마크 구축", desc: "블렌더 모델과 라이팅 연동을 마친 인터랙티브 가상 갤러리" }
+        ]
+      },
+      {
+        id: "car_3",
+        name: "그로스해킹 디지털 마케터",
+        type: "E",
+        desc: "소비자 구매 여정 및 행동 데이터를 수집 및 분석하여 고속 마케팅 성장을 기획 및 리드합니다.",
+        tags: ["마케팅", "데이터", "성과분석", "기획"],
+        salary: "5,800만원",
+        growth: "78%",
+        demand: "상",
+        skills: ["Google Analytics", "A/B Testing", "SQL", "SEO"],
+        roadmap: [
+          { step: "1단계: 마케팅 깔때기(Funnel) 이해", desc: "AARRR 프레임워크 학습 및 타겟 고객 분석법 훈련" },
+          { step: "2단계: 데이터 트래킹 세팅", desc: "GTM 및 구글 애널리틱스를 활용한 유저 로그 수집 설계" },
+          { step: "3단계: 실험 및 A/B 테스트", desc: "카피 변경과 랜딩 페이지 수정을 통한 전격 전환율 최적화" },
+          { step: "4단계: 자동화 캠페인 및 이탈율 가드", desc: "마케팅 자동화 툴 세팅 및 실전 이메일 세그먼트 운영" }
+        ],
+        materials: [
+          { type: "강의", title: "그로스해킹 입문: 데이터로 성장하는 마케팅" },
+          { type: "도서", title: "그로스 해킹 - 션 엘리스 저" }
+        ],
+        projects: [
+          { title: "가상 이커머스 쇼핑몰 가입 전환율 15% 개선 프로젝트", desc: "GA4 및 Hotjar 히트맵을 활용해 발견한 UX 이탈 지점을 개선하고 증빙 리포트 발행" }
+        ]
+      },
+      {
+        id: "car_4",
+        name: "생체 적응형 로봇 제어 공학자",
+        type: "R",
+        desc: "물리적 모터를 제어하여 인체의 관절 움직임을 흉내 내는 의료용 및 산업용 외골격 로봇을 빌딩합니다.",
+        tags: ["로봇", "제어", "하드웨어", "C++"],
+        salary: "7,500만원",
+        growth: "92%",
+        demand: "최상",
+        skills: ["C/C++", "ROS", "Kinematics", "CAD"],
+        roadmap: [
+          { step: "1단계: 전기전자 기초 및 임베디드", desc: "아두이노, 라즈베리파이 센서 및 모터 전력 제어 지식 학습" },
+          { step: "2단계: 로봇 메커니즘 설계", desc: "CAD 프로그램 활용 관절 자유도 계산 및 기구부 구조 설계" },
+          { step: "3단계: 제어 알고리즘 프로그래밍", desc: "ROS 기반 기하학적 역기구학 시뮬레이션 및 피드백 제어 구현" },
+          { step: "4단계: 바이오 센서 퓨전", desc: "근전도(EMG) 센싱 기술을 적용해 인간 움직임 동기화 매칭" }
+        ],
+        materials: [
+          { type: "강의", title: "ROS2를 활용한 로봇 소프트웨어 개발" },
+          { type: "도서", title: "피드백 제어계 설계 입문 (성안당)" }
+        ],
+        projects: [
+          { title: "3D 프린터를 활용한 3축 인체모방 로봇팔 실물 제작", desc: "아두이노 조이스틱 제어 및 물체 감지 그리퍼 프로그래밍" }
+        ]
+      },
+      {
+        id: "car_5",
+        name: "시니어 라이프케어 코디네이터",
+        type: "S",
+        desc: "고령 사회 고객을 위해 맞춤형 영양, 정신건강, 인지 자극 및 사회참여 프로그램을 설계하고 컨설팅합니다.",
+        tags: ["복지", "의료", "소통", "컨설팅"],
+        salary: "4,600만원",
+        growth: "89%",
+        demand: "상",
+        skills: ["Counseling", "Gerontology", "Therapy Plan", "EHR Systems"],
+        roadmap: [
+          { step: "1단계: 노년학 및 상담 심리학 습득", desc: "노화의 심리·사회적 변화를 올바로 공감하고 상담 기법 훈련" },
+          { step: "2단계: 맞춤 치료/재활 기획", desc: "인지력 향상, 미술 치유, 생활 영양 식단 수립 체계 수립" },
+          { step: "3단계: 복지 및 의료 네트워크 제휴", desc: "요양 요양 인프라 및 정부 바우처 제도 연계 가이드 개발" },
+          { step: "4단계: 종합 케어 센터 운영 리드", desc: "클라이언트별 장기 케어 플랜 집행 및 패밀리 상담 주관" }
+        ],
+        materials: [
+          { type: "강의", title: "노인 복지 및 은퇴 설계 전문가 과정" },
+          { type: "도서", title: "품격 있는 시니어 라이프 설계의 실제" }
+        ],
+        projects: [
+          { title: "경도 인지장애 어르신을 위한 8주 과정 원예 치료 시나리오", desc: "실제 적용 가능한 액티비티 일일 수업 지도안 및 일지 양식 설계" }
+        ]
+      },
+      {
+        id: "car_6",
+        name: "지능형 핀테크 자산 검증 감사관",
+        type: "C",
+        desc: "블록체인 스마트 컨트랙트 및 금융 정보 원장의 무결성을 입증하기 위해 알고리즘 자동 감사를 집행합니다.",
+        tags: ["보안", "금융", "감사", "체계화"],
+        salary: "8,000만원",
+        growth: "81%",
+        demand: "중",
+        skills: ["Solidity", "SQL", "Compliance Audit", "Data Analytics"],
+        roadmap: [
+          { step: "1단계: 복식부기 및 회계 법률 입문", desc: "기업 세무 원리 및 이중 장부 관리 기법 기초 교육" },
+          { step: "2단계: 데이터베이스 정형 질의어(SQL)", desc: "다층 오라클 트랜잭션 기록 검사 및 누수 추적 기술 확보" },
+          { step: "3단계: 블록체인 스마트 컨트랙트 분석", desc: "Solidity 코드 가상 환경 실행 및 소스 취약점 수치 탐지" },
+          { step: "4단계: AI 자동 감사 리포팅", desc: "이상 거래 탐지(FDS) 연계 자동 스케줄 보고서 설계 마스터" }
+        ],
+        materials: [
+          { type: "강의", title: "스마트 컨트랙트 보안 가이드 및 블록체인 감사" },
+          { type: "도서", title: "가상 자산 금융 세무 감사 표준 (영진출판)" }
+        ],
+        projects: [
+          { title: "Defi 탈중앙 금융 서비스 해킹 패턴 역추적 보고서", desc: "스마트 컨트랙트 로직 오작동 코드를 정밀 분석하여 취약점 보완 보안 패치 제안" }
+        ]
+      }
+    ];
+
+    // ==========================================
+    // 2. STATE MANAGEMENT
+    // ==========================================
+    const state = {
+      currentPage: "home",
+      currentQuestionIndex: 0,
+      testAnswers: {}, // { Q_ID: Answer_Score (1-5) }
+      bookmarks: [], // Array of Career IDs or Names
+      compareList: [], // Array of Selected Career Objects
+      userScores: { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 },
+      topCodes: [], // ['A', 'I']
+      selectedTargetRoadmap: null,
+      goalsChecked: {}, // { "CareerName_Step": boolean }
+      apiKey: "" // Automatically provided or promptable at runtime. If empty, local is used first, or fallback.
+    };
+
+    // Initialize state from LocalStorage if exists
+    function loadSavedState() {
+      try {
+        const savedBookmarks = localStorage.getItem("ai_pathfinder_bookmarks");
+        if (savedBookmarks) state.bookmarks = JSON.parse(savedBookmarks);
+        
+        const savedGoals = localStorage.getItem("ai_pathfinder_goals");
+        if (savedGoals) state.goalsChecked = JSON.parse(savedGoals);
+        
+        updateBookmarkCountUI();
+      } catch (e) {
+        console.error("로컬 스토리지 데이터 복구 실패", e);
+      }
+    }
+
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem("ai_pathfinder_bookmarks", JSON.stringify(state.bookmarks));
+        localStorage.setItem("ai_pathfinder_goals", JSON.stringify(state.goalsChecked));
+      } catch (e) {
+        console.error("로컬 스토리지에 데이터 저장 실패", e);
+      }
+    }
+
+    // ==========================================
+    // 3. NAVIGATION & UI ROUTER
+    // ==========================================
+    function navigateTo(pageId) {
+      // Toggle CSS active state for nav buttons
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        if (btn.getAttribute('data-page') === pageId) {
+          btn.classList.add('bg-blue-50', 'text-blue-600');
+          btn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+        } else {
+          btn.classList.remove('bg-blue-50', 'text-blue-600');
+          btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+        }
+      });
+
+      // Hide all pages, show targeted page
+      document.querySelectorAll('.page-view').forEach(view => {
+        view.classList.add('hidden');
+      });
+      const activePage = document.getElementById(`page-${pageId}`);
+      if (activePage) {
+        activePage.classList.remove('hidden');
+        activePage.classList.add('fade-in');
+      }
+
+      // Close mobile menu if open
+      document.getElementById('mobile-menu').classList.add('hidden');
+
+      state.currentPage = pageId;
+      window.scrollTo(0, 0);
+
+      // Page-specific initialization hooks
+      if (pageId === 'test') {
+        initCareerTest();
+      } else if (pageId === 'careers') {
+        renderCareersDirectory();
+      } else if (pageId === 'roadmap') {
+        initRoadmapView();
+      }
+    }
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    // ==========================================
+    // 4. TOAST NOTIFICATION
+    // ==========================================
+    function showToast(message, type = "info") {
+      const toast = document.getElementById('app-toast');
+      const toastMsg = document.getElementById('toast-message');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMsg.innerText = message;
+      
+      if (type === "error") {
+        toastIcon.innerHTML = `<i data-lucide="alert-triangle" class="w-5 h-5 text-rose-500"></i>`;
+      } else if (type === "success") {
+        toastIcon.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>`;
+      } else {
+        toastIcon.innerHTML = `<i data-lucide="info" class="w-5 h-5 text-blue-400"></i>`;
+      }
+      lucide.createIcons();
+
+      toast.classList.remove('hidden');
+      
+      // Auto-hide toast
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3500);
+    }
+
+    // ==========================================
+    // 5. HOLLAND CAREER TEST ENGINE
+    // ==========================================
+    function initCareerTest() {
+      state.currentQuestionIndex = 0;
+      state.testAnswers = {};
+      updateQuestionUI();
+    }
+
+    function updateQuestionUI() {
+      const q = questionsDatabase[state.currentQuestionIndex];
+      if (!q) return;
+
+      // Question counter and Progress
+      document.getElementById('question-num').innerText = q.id;
+      document.getElementById('question-text').innerText = q.text;
+      
+      const totalQs = questionsDatabase.length;
+      document.getElementById('test-progress-text').innerText = `질문 ${q.id} / ${totalQs}`;
+      
+      const pct = (q.id / totalQs) * 100;
+      document.getElementById('test-progress-bar').style.width = `${pct}%`;
+
+      // Back navigation button active control
+      const prevBtn = document.getElementById('prev-question-btn');
+      if (state.currentQuestionIndex > 0) {
+        prevBtn.disabled = false;
+        prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      } else {
+        prevBtn.disabled = true;
+        prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+
+      // Re-apply style changes to Selected/Stored answers in current question
+      const storedAns = state.testAnswers[q.id];
+      document.querySelectorAll('.option-btn').forEach((btn, idx) => {
+        const val = 5 - idx; // Index 0 is 5 points, Index 4 is 1 point
+        if (storedAns === val) {
+          btn.className = "option-btn text-left p-4 rounded-2xl border-2 border-blue-600 bg-blue-50 font-bold flex justify-between items-center text-blue-800 transition-all";
+        } else {
+          btn.className = "option-btn text-left p-4 rounded-2xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/55 transition-all font-semibold flex justify-between items-center text-slate-700 group";
+        }
+      });
+    }
+
+    function handleAnswer(score) {
+      const q = questionsDatabase[state.currentQuestionIndex];
+      state.testAnswers[q.id] = score;
+
+      // Move forward if not end
+      if (state.currentQuestionIndex < questionsDatabase.length - 1) {
+        state.currentQuestionIndex++;
+        // Short timeout for seamless visual effect
+        setTimeout(() => {
+          updateQuestionUI();
+        }, 120);
+      } else {
+        // Test Completed!
+        processTestResults();
+      }
+    }
+
+    function prevQuestion() {
+      if (state.currentQuestionIndex > 0) {
+        state.currentQuestionIndex--;
+        updateQuestionUI();
+      }
+    }
+
+    // Process Answers & Calculate Scores
+    function processTestResults() {
+      // Initialize scores
+      const scores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+      const counts = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+
+      // Sum values for each question type
+      questionsDatabase.forEach(q => {
+        const score = state.testAnswers[q.id] || 3; // Default 3 if unanswered
+        scores[q.type] += score;
+        counts[q.type] += 1;
+      });
+
+      // Normalize scores (average on 100 base or simple raw sum mapping)
+      // We will map raw score to average score for cleaner chart representation
+      Object.keys(scores).forEach(type => {
+        state.userScores[type] = parseFloat(((scores[type] / (counts[type] * 5)) * 100).toFixed(1));
+      });
+
+      // Calculate Top 2 codes
+      const sortedCodes = Object.keys(state.userScores).sort((a, b) => state.userScores[b] - state.userScores[a]);
+      state.topCodes = [sortedCodes[0], sortedCodes[1]];
+
+      navigateTo('result');
+      renderResultsUI();
+    }
+
+    // ==========================================
+    // 6. RESULT PAGE & CHART VISUALIZATION
+    // ==========================================
+    let activeChartInstance = null;
+
+    function renderResultsUI() {
+      // Code Text mapping
+      const codeNames = {
+        R: "현실형(R)",
+        I: "탐구형(I)",
+        A: "예술형(A)",
+        S: "사회형(S)",
+        E: "진취형(E)",
+        C: "관습형(C)"
+      };
+
+      const top1 = state.topCodes[0];
+      const top2 = state.topCodes[1];
+      
+      const combinationName = getRiasecComboName(top1, top2);
+      document.getElementById('riasec-code-title').innerText = `${combinationName} (${top1}${top2})`;
+      document.getElementById('riasec-description').innerText = getRiasecDescription(top1, top2);
+      
+      document.getElementById('code-top-1').innerText = codeNames[top1];
+      document.getElementById('code-top-2').innerText = codeNames[top2];
+      
+      // Strength level based on scores
+      const avgScore = (state.userScores[top1] + state.userScores[top2]) / 2;
+      let strengthText = "보통";
+      if (avgScore > 80) strengthText = "매우 강함";
+      else if (avgScore > 60) strengthText = "강함";
+      document.getElementById('code-strength').innerText = strengthText;
+
+      // Draw Radar Chart
+      drawRadarChart();
+
+      // Trigger AI Realtime Recommendation or Local Pre-load
+      generateAIRecommendations();
+    }
+
+    function getRiasecComboName(c1, c2) {
+      const mapping = {
+        "RI": "현장 탐구 설계자", "RA": "제작 창작 아티스트", "RS": "봉사형 기술 엔지니어", "RE": "산업 프로젝트 마스터", "RC": "정밀 시스템 관리사",
+        "IR": "하이테크 리서처", "IA": "이론적 크리에이터", "IS": "학술 교육 멘토", "IE": "기술 벤처 분석가", "IC": "금융 데이터 과학자",
+        "AR": "디지털 공예 예술가", "AI": "개념적 비주얼 설계자", "AS": "예술 치유 상담가", "AE": "크리에이티브 디렉터", "AC": "정형 미디어 편집기획자",
+        "SR": "실버케어 주치의", "SI": "사회 과학 상담원", "SA": "커뮤니티 예술가", "SE": "비영리 소셜 리더", "SC": "인적 행정 전문가",
+        "ER": "필드 프로덕트 매니저", "EI": "미래 기술 기획 투자자", "EA": "스타트업 디렉터", "ES": "휴먼 비즈니스 리더", "EC": "재무 컨설턴트",
+        "CR": "기계 제어 회계원", "CI": "알고리즘 무결성 검증원", "CA": "자료 가치 보존가", "CS": "공공 행정 도우미", "CE": "체계적 비즈니스 설계원"
+      };
+      return mapping[`${c1}${c2}`] || mapping[`${c2}${c1}`] || "융합 인재형";
+    }
+
+    function getRiasecDescription(c1, c2) {
+      const combined = `${c1}${c2}`;
+      // Basic descriptions matching high-level interests
+      if (c1 === 'I' || c2 === 'I') {
+        return "당신은 탐구 능력이 돋보이는 인재입니다. 분석적이며 사실 기반 의사결정을 추구하는 경향이 뚜렷합니다. 동시에 다른 성향 코드가 보완됨에 따라 실체 있는 제품 개발이나 비주얼 구현, 가치 기획으로 파생될 큰 잠재력을 보유하고 있습니다.";
+      }
+      if (c1 === 'A' || c2 === 'A') {
+        return "상상력을 구체화하며 고유한 미적 가치를 창달할 때 가장 동기부여를 받습니다. 고정된 정해진 룰보다는 열려 있는 환경에서 주도적으로 독자 노선을 찾아가고자 하는 성향이 농후합니다.";
+      }
+      return "당신은 조화로운 실용 융합 인재입니다. 협업과 실질적인 문제 해결에 높은 가치를 둡니다. 정밀한 업무 체계를 준수하거나 적극적으로 목표를 리드하여 비즈니스 가치와 타인 복지 증진을 모두 조화롭게 챙길 수 있습니다.";
+    }
+
+    function drawRadarChart() {
+      const ctx = document.getElementById('riasecChart').getContext('2d');
+      if (activeChartInstance) {
+        activeChartInstance.destroy();
+      }
+
+      const labels = ['실용형 (R)', '탐구형 (I)', '예술형 (A)', '사회형 (S)', '진취형 (E)', '관습형 (C)'];
+      const dataValues = [
+        state.userScores.R,
+        state.userScores.I,
+        state.userScores.A,
+        state.userScores.S,
+        state.userScores.E,
+        state.userScores.C
+      ];
+
+      activeChartInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '흥미 지수 (%)',
+            data: dataValues,
+            backgroundColor: 'rgba(79, 70, 229, 0.2)',
+            borderColor: 'rgb(79, 70, 229)',
+            borderWidth: 2.5,
+            pointBackgroundColor: 'rgb(79, 70, 229)',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgb(79, 70, 229)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            r: {
+              angleLines: { display: true, color: '#e2e8f0' },
+              grid: { color: '#e2e8f0' },
+              suggestedMin: 0,
+              suggestedMax: 100,
+              ticks: { display: false, stepSize: 20 }
+            }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // 7. GEMINI AI REALTIME INTEGRATION (MANDATORY APIS)
+    // ==========================================
+    async function generateAIRecommendations() {
+      const aiLoading = document.getElementById('ai-loading');
+      const container = document.getElementById('recommended-careers-container');
+      const failAlert = document.getElementById('ai-failed-alert');
+
+      aiLoading.classList.remove('hidden');
+      container.innerHTML = "";
+      failAlert.classList.add('hidden');
+
+      // Setup call context
+      const userTopCode = `${state.topCodes[0]}${state.topCodes[1]}`;
+      const systemPrompt = `당신은 최고 권위의 AI 진로 카운슬러 겸 직업 연구원입니다. 사용자의 홀랜드 RIASEC 코드 결과를 바탕으로, 향후 10년간 가장 촉망받는 융합형 '미래 예측 맞춤형 직업' 3종을 개발하고 이에 최적화된 로드맵 데이터를 설계하여 정확한 JSON 형태로만 반환해야 합니다.`;
+      
+      const userPrompt = `내 RIASEC 1순위 코드는 [${state.topCodes[0]}], 2순위 코드는 [${state.topCodes[1]}] 이며, 전체 점수 분포는 R:${state.userScores.R}%, I:${state.userScores.I}%, A:${state.userScores.A}%, S:${state.userScores.S}%, E:${state.userScores.E}%, C:${state.userScores.C}% 입니다.
+      이 성향에 매칭되는 초유망 직업 3개를 선정해 주세요. 
+      반드시 다음과 같은 JSON 스키마를 만족하게 엄격하게 리턴해 주십시오. 텍스트 설명이나 마크다운 따옴표(\`\`\`) 없이 오직 유효한 JSON 통째로만 출력해야 합니다.
+      
+      {
+        "careers": [
+          {
+            "name": "직업 이름(기존 직업의 명칭이 아니라 흥미로운 융합 신직업 제안 환영)",
+            "type": "RIASEC 주요 대표 단일코드 1글자",
+            "desc": "이 직업이 수행하는 구체적인 업무 성격 및 사용자의 성향과의 관련성 요약(150자 내외)",
+            "tags": ["태그1", "태그2", "태그3"],
+            "salary": "전망 연봉 수준(예: '7,000만원')",
+            "growth": "향후 10년 전망 상승률(예: '94%')",
+            "demand": "인력 수요 상태(예: '최상' 또는 '상')",
+            "skills": ["요구스킬1", "요구스킬2", "요구스킬3", "요구스킬4"],
+            "roadmap": [
+              { "step": "1단계: 기초 마일스톤 명칭", "desc": "단계에서 완수할 학습 내용과 가이드" },
+              { "step": "2단계: 개발 마일스톤 명칭", "desc": "단계에서 완수할 실무 핵심 역량" },
+              { "step": "3단계: 심화 마일스톤 명칭", "desc": "전문 자격 및 실무 스케일업 과정" },
+              { "step": "4단계: 진입 마일스톤 명칭", "desc": "포트폴리오 정리 및 주니어 진입 전술" }
+            ],
+            "materials": [
+              { "type": "강의 또는 서적", "title": "학습 자료나 도서명 추천" },
+              { "type": "강의 또는 서적", "title": "또 다른 유익한 학습 자료 추천" }
+            ],
+            "projects": [
+              { "title": "추천 실전 프로젝트명", "desc": "가치가 있는 결과물 구상 및 포트폴리오 활용 시나리오" }
+            ]
+          }
+        ]
+      }`;
+
+      let responseText = "";
+      let retries = 5;
+      let delay = 1000;
+
+      while (retries > 0) {
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${state.apiKey}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: userPrompt }] }],
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                  type: "OBJECT",
+                  properties: {
+                    careers: {
+                      type: "ARRAY",
+                      items: {
+                        type: "OBJECT",
+                        properties: {
+                          name: { type: "STRING" },
+                          type: { type: "STRING" },
+                          desc: { type: "STRING" },
+                          tags: { type: "ARRAY", items: { type: "STRING" } },
+                          salary: { type: "STRING" },
+                          growth: { type: "STRING" },
+                          demand: { type: "STRING" },
+                          skills: { type: "ARRAY", items: { type: "STRING" } },
+                          roadmap: {
+                            type: "ARRAY",
+                            items: {
+                              type: "OBJECT",
+                              properties: {
+                                step: { type: "STRING" },
+                                desc: { type: "STRING" }
+                              },
+                              required: ["step", "desc"]
+                            }
+                          },
+                          materials: {
+                            type: "ARRAY",
+                            items: {
+                              type: "OBJECT",
+                              properties: {
+                                type: { type: "STRING" },
+                                title: { type: "STRING" }
+                              },
+                              required: ["type", "title"]
+                            }
+                          },
+                          projects: {
+                            type: "ARRAY",
+                            items: {
+                              type: "OBJECT",
+                              properties: {
+                                title: { type: "STRING" },
+                                desc: { type: "STRING" }
+                              },
+                              required: ["title", "desc"]
+                            }
+                          }
+                        },
+                        required: ["name", "type", "desc", "tags", "salary", "growth", "demand", "skills", "roadmap", "materials", "projects"]
+                      }
+                    }
+                  },
+                  required: ["careers"]
+                }
+              }
+            })
+          });
+
+          if (!response.ok) throw new Error("API 요청 실패");
+          const result = await response.json();
+          responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+          break; // Success!
+        } catch (error) {
+          retries--;
+          if (retries === 0) {
+            console.error("AI 추천 생성 최대 재시도 실패. 로컬 프리셋 직업을 노출합니다.", error);
+            renderLocalPresetRecommendations();
+            return;
+          }
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 2; // Exponential Backoff
+        }
+      }
+
+      // Parse JSON payload & Render
+      try {
+        const cleanJson = JSON.parse(responseText);
+        aiLoading.classList.add('hidden');
+        
+        // Temporarily append dynamic careers to the directory for navigation & roadmaps
+        cleanJson.careers.forEach(career => {
+          // Generate unique ID
+          career.id = "dyn_" + Math.random().toString(36).substr(2, 9);
+          // Insert to local directory list so they are retrievable globally
+          careersDatabase.push(career);
+        });
+
+        renderCareerCards(cleanJson.careers, container);
+        showToast("Gemini AI가 정교하게 분석한 실시간 직업 3종이 도착했습니다!", "success");
+
+      } catch (err) {
+        console.error("JSON 파싱 오류. 폴백 데이터 노출", err);
+        renderLocalPresetRecommendations();
+      }
+    }
+
+    function renderLocalPresetRecommendations() {
+      const aiLoading = document.getElementById('ai-loading');
+      const failAlert = document.getElementById('ai-failed-alert');
+      const container = document.getElementById('recommended-careers-container');
+
+      aiLoading.classList.add('hidden');
+      failAlert.classList.remove('hidden');
+
+      // Filter local database by top code match
+      const filtered = careersDatabase.filter(c => c.type === state.topCodes[0] || c.type === state.topCodes[1]);
+      const displayList = filtered.length > 0 ? filtered : careersDatabase.slice(0, 3);
+      
+      renderCareerCards(displayList, container);
+    }
+
+    function renderCareerCards(careersList, containerElement) {
+      containerElement.innerHTML = "";
+      
+      careersList.forEach(career => {
+        const isBookmarked = state.bookmarks.includes(career.id) || state.bookmarks.includes(career.name);
+        const heartClass = isBookmarked ? "text-rose-500 fill-rose-500" : "text-slate-400 hover:text-rose-500";
+        
+        const cardHtml = `
+          <div class="glass-card rounded-3xl p-6 border border-slate-200/80 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between space-y-4 fade-in">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 text-xs font-extrabold rounded-full">${career.type} 계열</span>
+                <button onclick="toggleBookmark('${career.id || career.name}')" class="p-1.5 hover:bg-slate-100 rounded-lg transition-all">
+                  <i data-lucide="heart" class="w-5 h-5 ${heartClass}"></i>
+                </button>
+              </div>
+              <h4 class="text-xl font-bold text-slate-900">${career.name}</h4>
+              <p class="text-slate-500 text-xs leading-relaxed line-clamp-3">${career.desc}</p>
+            </div>
+
+            <div class="space-y-3 pt-3 border-t border-slate-100">
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-slate-50 p-2 rounded-xl text-center">
+                  <span class="block text-slate-400 text-[10px]">평균 연봉</span>
+                  <span class="font-bold text-slate-700 mt-0.5 block">${career.salary}</span>
+                </div>
+                <div class="bg-slate-50 p-2 rounded-xl text-center">
+                  <span class="block text-slate-400 text-[10px]">전망 성장률</span>
+                  <span class="font-bold text-emerald-600 mt-0.5 block">${career.growth}</span>
+                </div>
+              </div>
+
+              <!-- Action buttons -->
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="viewRoadmapDetail('${encodeURIComponent(JSON.stringify(career))}')" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1 shadow shadow-blue-500/10">
+                  <i data-lucide="milestone" class="w-3.5 h-3.5"></i> 로드맵 타깃
+                </button>
+                <button onclick="toggleCompareList('${career.id || career.name}')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1">
+                  <i data-lucide="arrow-left-right" class="w-3.5 h-3.5"></i> 비교 담기
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        containerElement.innerHTML += cardHtml;
+      });
+
+      lucide.createIcons();
+    }
+
+    // Pass data directly to Roadmap view and switch tab
+    function viewRoadmapDetail(encodedData) {
+      const careerObj = JSON.parse(decodeURIComponent(encodedData));
+      
+      // Store in state as dynamic temporary selection
+      state.selectedTargetRoadmap = careerObj;
+
+      // Update options dropdown with this dynamic selection if not present
+      const select = document.getElementById('roadmap-target-select');
+      const exists = Array.from(select.options).some(opt => opt.value === careerObj.id);
+      
+      if (!exists) {
+        const opt = document.createElement('option');
+        opt.value = careerObj.id;
+        opt.innerText = `[AI 추천] ${careerObj.name}`;
+        select.appendChild(opt);
+      }
+
+      select.value = careerObj.id;
+      navigateTo('roadmap');
+      loadTargetRoadmap(careerObj.id);
+    }
+
+    // ==========================================
+    // 8. BOOKMARK & SCRAAP SYSTEM
+    // ==========================================
+    function toggleBookmark(idOrName) {
+      const idx = state.bookmarks.indexOf(idOrName);
+      if (idx > -1) {
+        state.bookmarks.splice(idx, 1);
+        showToast("즐겨찾기에서 해제되었습니다.", "info");
+      } else {
+        state.bookmarks.push(idOrName);
+        showToast("관심 직업으로 저장되었습니다!", "success");
+      }
+      saveToLocalStorage();
+      updateBookmarkCountUI();
+      
+      // Refresh current page to reflect UI state
+      if (state.currentPage === 'result') {
+        renderLocalPresetRecommendations();
+      } else if (state.currentPage === 'careers') {
+        renderCareersDirectory();
+      }
+    }
+
+    function updateBookmarkCountUI() {
+      const countEl = document.getElementById('bookmark-count');
+      const listEl = document.getElementById('bookmarks-list');
+      
+      const count = state.bookmarks.length;
+      if (count > 0) {
+        countEl.innerText = count;
+        countEl.classList.remove('hidden');
+        
+        // Render simple list
+        listEl.innerHTML = "";
+        state.bookmarks.forEach(idOrName => {
+          const career = careersDatabase.find(c => c.id === idOrName || c.name === idOrName);
+          if (career) {
+            listEl.innerHTML += `
+              <div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded-xl border border-slate-100 transition-colors">
+                <span class="font-semibold text-xs text-slate-800 truncate max-w-[150px]">${career.name}</span>
+                <div class="flex items-center gap-1.5">
+                  <button onclick="viewRoadmapDetail('${encodeURIComponent(JSON.stringify(career))}')" class="text-xs text-blue-600 hover:underline">로드맵</button>
+                  <button onclick="toggleBookmark('${career.id}')" class="text-rose-500 hover:text-rose-700">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          }
+        });
+        lucide.createIcons();
+      } else {
+        countEl.classList.add('hidden');
+        listEl.innerHTML = `찜한 직업이 없습니다. 마음에 드는 직업을 추가해 보세요!`;
+      }
+    }
+
+    function toggleBookmarks() {
+      const dropdown = document.getElementById('bookmarks-dropdown');
+      dropdown.classList.toggle('hidden');
+    }
+
+    // ==========================================
+    // 9. CAREER DIRECTORY & COMPARISON SYSTEM
+    // ==========================================
+    function renderCareersDirectory() {
+      const grid = document.getElementById('careers-directory-grid');
+      grid.innerHTML = "";
+      
+      const searchVal = document.getElementById('career-search-input').value.toLowerCase();
+      const riasecVal = document.getElementById('career-riasec-filter').value;
+      const sortVal = document.getElementById('career-sort-filter').value;
+
+      // Filter logic
+      let list = [...careersDatabase];
+      
+      if (searchVal) {
+        list = list.filter(c => 
+          c.name.toLowerCase().includes(searchVal) || 
+          c.desc.toLowerCase().includes(searchVal) ||
+          c.tags.some(t => t.toLowerCase().includes(searchVal)) ||
+          c.skills.some(s => s.toLowerCase().includes(searchVal))
+        );
+      }
+
+      if (riasecVal) {
+        list = list.filter(c => c.type === riasecVal);
+      }
+
+      if (sortVal === 'salary') {
+        list.sort((a, b) => parseInt(b.salary.replace(/[^0-9]/g, '')) - parseInt(a.salary.replace(/[^0-9]/g, '')));
+      } else if (sortVal === 'growth') {
+        list.sort((a, b) => parseInt(b.growth) - parseInt(a.growth));
+      }
+
+      if (list.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-12 glass-card rounded-2xl border border-slate-200 text-slate-400">
+            일치하는 직업 결과가 없습니다. 검색어를 달리해보세요.
+          </div>
+        `;
+        return;
+      }
+
+      renderCareerCards(list, grid);
+    }
+
+    function filterCareers() {
+      renderCareersDirectory();
+    }
+
+    // Comparison Basket Controls
+    function toggleCompareList(idOrName) {
+      const career = careersDatabase.find(c => c.id === idOrName || c.name === idOrName);
+      if (!career) return;
+
+      const idx = state.compareList.findIndex(c => c.name === career.name);
+      if (idx > -1) {
+        state.compareList.splice(idx, 1);
+        showToast(`${career.name}이(가) 비교 대상에서 삭제되었습니다.`, "info");
+      } else {
+        if (state.compareList.length >= 3) {
+          showToast("직업 비교는 동시에 최대 3개까지만 가능합니다.", "error");
+          return;
+        }
+        state.compareList.push(career);
+        showToast(`${career.name}이(가) 비교 대상으로 담겼습니다!`, "success");
+      }
+
+      updateCompareUI();
+    }
+
+    function updateCompareUI() {
+      const indicator = document.getElementById('compare-indicator');
+      const countEl = document.getElementById('compare-count');
+      
+      const count = state.compareList.length;
+      if (count > 0) {
+        countEl.innerText = count;
+        indicator.classList.remove('hidden');
+      } else {
+        indicator.classList.add('hidden');
+      }
+    }
+
+    function clearCompareList() {
+      state.compareList = [];
+      updateCompareUI();
+      showToast("비교함이 비워졌습니다.");
+    }
+
+    function openCompareModal() {
+      if (state.compareList.length === 0) return;
+
+      const table = document.getElementById('compare-table');
+      table.innerHTML = "";
+
+      // Construct columns
+      const headerRow = document.createElement('tr');
+      headerRow.className = "border-b border-slate-200 text-slate-400 uppercase text-xs tracking-wider";
+      headerRow.innerHTML = `<th class="py-4 px-3 font-semibold">특성</th>`;
+      
+      state.compareList.forEach(c => {
+        headerRow.innerHTML += `<th class="py-4 px-4 font-bold text-slate-800 text-base">${c.name}</th>`;
+      });
+      table.appendChild(headerRow);
+
+      const rows = [
+        { label: "RIASEC 타입", key: "type" },
+        { label: "직업 소개", key: "desc" },
+        { label: "요구 역량 스킬", key: "skills", isArray: true },
+        { label: "평균 연봉수준", key: "salary" },
+        { label: "전망 상승세", key: "growth" },
+        { label: "수요 강도", key: "demand" }
+      ];
+
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-slate-100 text-sm";
+        let cellHtml = `<td class="py-4 px-3 font-bold text-slate-500">${r.label}</td>`;
+        
+        state.compareList.forEach(c => {
+          let val = c[r.key];
+          if (r.isArray && Array.isArray(val)) {
+            val = val.map(v => `<span class="inline-block bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded-lg mr-1 mb-1 font-medium">${v}</span>`).join('');
+          } else if (r.key === 'growth') {
+            val = `<span class="text-emerald-600 font-bold">${val}</span>`;
+          }
+          cellHtml += `<td class="py-4 px-4 text-slate-700 leading-relaxed">${val}</td>`;
+        });
+        tr.innerHTML = cellHtml;
+        table.appendChild(tr);
+      });
+
+      document.getElementById('compare-modal').classList.remove('hidden');
+    }
+
+    function closeCompareModal() {
+      document.getElementById('compare-modal').classList.add('hidden');
+    }
+
+    // ==========================================
+    // 10. ROADMAP & TARGETED PROGRESS CHECKLIST
+    // ==========================================
+    function initRoadmapView() {
+      const select = document.getElementById('roadmap-target-select');
+      select.innerHTML = "";
+
+      // Load distinct careers from list
+      careersDatabase.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.innerText = c.name;
+        select.appendChild(opt);
+      });
+
+      // Default load
+      if (state.selectedTargetRoadmap) {
+        select.value = state.selectedTargetRoadmap.id;
+        loadTargetRoadmap(state.selectedTargetRoadmap.id);
+      } else {
+        const firstId = careersDatabase[0].id;
+        loadTargetRoadmap(firstId);
+      }
+    }
+
+    function loadTargetRoadmap(careerId) {
+      const career = careersDatabase.find(c => c.id === careerId);
+      if (!career) return;
+
+      // Update basic fields
+      document.getElementById('roadmap-title').innerText = career.name;
+      document.getElementById('roadmap-riasec').innerText = `${career.type} 계열`;
+      document.getElementById('roadmap-description').innerText = career.desc;
+      
+      // Update tags
+      const tagsContainer = document.getElementById('roadmap-tags');
+      tagsContainer.innerHTML = "";
+      career.tags.forEach(t => {
+        tagsContainer.innerHTML += `<span class="px-2 py-1 bg-slate-100 rounded-lg text-xs font-semibold text-slate-500">#${t}</span>`;
+      });
+
+      // Timeline stages & Checklist
+      const timeline = document.getElementById('roadmap-timeline-container');
+      timeline.innerHTML = "";
+
+      career.roadmap.forEach((stage, idx) => {
+        const stageKey = `${career.name}_step_${idx}`;
+        const checked = state.goalsChecked[stageKey] ? "checked" : "";
+        const strikeClass = checked ? "line-through text-slate-400" : "text-slate-800";
+        
+        const stageHtml = `
+          <div class="relative flex flex-col sm:flex-row items-start gap-4 fade-in">
+            <!-- Node bullet -->
+            <div class="absolute -left-[31px] top-1 bg-white border-2 border-blue-600 rounded-full w-4.5 h-4.5 flex items-center justify-center">
+              <div class="w-2 h-2 bg-blue-600 rounded-full"></div>
+            </div>
+            
+            <div class="flex-grow glass-card p-5 rounded-2xl border border-slate-200/80 shadow-sm w-full flex items-start justify-between gap-4">
+              <div class="space-y-1.5">
+                <span class="text-xs font-bold text-blue-600 uppercase tracking-wider block">${stage.step}</span>
+                <p class="font-bold text-base leading-relaxed ${strikeClass}" id="text-${stageKey}">${stage.desc}</p>
+              </div>
+              
+              <!-- Checkbox -->
+              <input type="checkbox" onchange="toggleGoalCheck('${career.name}', ${idx})" ${checked} class="w-6.5 h-6.5 text-blue-600 border-slate-300 rounded-xl focus:ring-blue-500 cursor-pointer">
+            </div>
+          </div>
+        `;
+        timeline.innerHTML += stageHtml;
+      });
+
+      // Curated learning & Projects
+      const materialsList = document.getElementById('suggested-materials-list');
+      materialsList.innerHTML = "";
+      career.materials.forEach(m => {
+        materialsList.innerHTML += `
+          <li class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-extrabold rounded-md uppercase tracking-wider">${m.type}</span>
+            <span class="text-xs font-semibold text-slate-700 self-center">${m.title}</span>
+          </li>
+        `;
+      });
+
+      const projectsList = document.getElementById('suggested-projects-list');
+      projectsList.innerHTML = "";
+      career.projects.forEach(p => {
+        projectsList.innerHTML += `
+          <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+            <h5 class="text-xs font-bold text-slate-900 flex items-center gap-1">
+              <i data-lucide="folder-git-2" class="w-3.5 h-3.5 text-blue-600"></i> ${p.title}
+            </h5>
+            <p class="text-[11px] text-slate-500 leading-relaxed">${p.desc}</p>
+          </div>
+        `;
+      });
+
+      lucide.createIcons();
+      updateRoadmapProgress(career);
+    }
+
+    function toggleGoalCheck(careerName, idx) {
+      const stageKey = `${careerName}_step_${idx}`;
+      state.goalsChecked[stageKey] = !state.goalsChecked[stageKey];
+      
+      const textEl = document.getElementById(`text-${stageKey}`);
+      if (state.goalsChecked[stageKey]) {
+        textEl.classList.add('line-through', 'text-slate-400');
+        showToast("마일스톤을 훌륭히 달성하셨습니다!", "success");
+      } else {
+        textEl.classList.remove('line-through', 'text-slate-400');
+      }
+
+      saveToLocalStorage();
+      
+      // Re-trigger calculation
+      const career = careersDatabase.find(c => c.name === careerName);
+      if (career) updateRoadmapProgress(career);
+    }
+
+    function updateRoadmapProgress(career) {
+      let done = 0;
+      const total = career.roadmap.length;
+
+      career.roadmap.forEach((_, idx) => {
+        const stageKey = `${career.name}_step_${idx}`;
+        if (state.goalsChecked[stageKey]) done++;
+      });
+
+      const pct = Math.round((done / total) * 100);
+      
+      document.getElementById('roadmap-pct').innerText = `${pct}%`;
+      document.getElementById('roadmap-done-count').innerText = done;
+      document.getElementById('roadmap-total-count').innerText = total;
+
+      // Update circular indicator
+      const circle = document.getElementById('roadmap-circle-progress');
+      circle.setAttribute('stroke-dasharray', `${pct}, 100`);
+    }
+
+    // ==========================================
+    // 11. 1:1 CHATBOT SYSTEM WITH EXPONENTIAL RETRY
+    // ==========================================
+    async function handleSendChat(event) {
+      event.preventDefault();
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = "";
+      appendChatMessage(text, false); // User message
+
+      // Loading bubble
+      const loadingId = appendChatLoadingBubble();
+
+      const systemPrompt = `당신은 최고로 신뢰할 수 있고 따뜻한 정서를 품은 'AI 전문 진로 상담 멘토'입니다. 
+      상담을 요청하는 취업 준비생이나 이직 예정자 등에게 다정한 존댓말로 명료하면서도 전문 지식이 충만한 구체적 피드백을 전달해 줘야 합니다.`;
+
+      let responseText = "";
+      let retries = 5;
+      let delay = 1000;
+
+      while (retries > 0) {
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${state.apiKey}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: text }] }],
+              systemInstruction: { parts: [{ text: systemPrompt }] }
+            })
+          });
+
+          if (!response.ok) throw new Error("API 요청 실패");
+          const result = await response.json();
+          responseText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+          break; // Success
+        } catch (error) {
+          retries--;
+          if (retries === 0) {
+            responseText = `죄송합니다. 현재 AI 멘토 연결에 병목이 생겼습니다. (API Key 미기재 혹은 인터넷 수신 감도 불량일 수 있습니다.) 잠시 후 다시 질문해 주세요!`;
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 2;
+        }
+      }
+
+      // Remove loading and append answer
+      document.getElementById(loadingId).remove();
+      appendChatMessage(responseText, true);
+    }
+
+    function appendChatMessage(text, isAi) {
+      const container = document.getElementById('chat-messages-container');
+      const bubbleId = "chat_" + Math.random().toString(36).substr(2, 9);
+      
+      const alignment = isAi ? "items-start" : "items-end justify-end";
+      const icon = isAi ? `
+        <div class="p-2 bg-blue-100 text-blue-700 rounded-xl flex-shrink-0">
+          <i data-lucide="bot" class="w-5 h-5"></i>
+        </div>
+      ` : "";
+      
+      const themeClass = isAi 
+        ? "bg-white rounded-tl-none border-slate-200 text-slate-700" 
+        : "bg-blue-600 text-white rounded-tr-none border-transparent";
+
+      const formattedText = text.replace(/\n/g, '<br>');
+
+      const html = `
+        <div class="flex ${alignment} gap-3 fade-in" id="${bubbleId}">
+          ${icon}
+          <div class="${themeClass} px-4 py-3 rounded-2xl border max-w-[80%] shadow-sm text-sm leading-relaxed">
+            <p>${formattedText}</p>
+          </div>
+        </div>
+      `;
+      
+      container.innerHTML += html;
+      lucide.createIcons();
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function appendChatLoadingBubble() {
+      const container = document.getElementById('chat-messages-container');
+      const id = "loading_" + Math.random().toString(36).substr(2, 9);
+      
+      const html = `
+        <div class="flex items-start gap-3" id="${id}">
+          <div class="p-2 bg-blue-100 text-blue-700 rounded-xl flex-shrink-0">
+            <i data-lucide="bot" class="w-5 h-5"></i>
+          </div>
+          <div class="bg-white px-4 py-3 rounded-2xl rounded-tl-none border border-slate-200 text-slate-500 max-w-[80%] shadow-sm text-sm flex items-center gap-2">
+            <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+            <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+          </div>
+        </div>
+      `;
+      container.innerHTML += html;
+      container.scrollTop = container.scrollHeight;
+      return id;
+    }
+
+    function sendQuickPrompt(promptText) {
+      document.getElementById('chat-input').value = promptText;
+      document.getElementById('chat-input-form').dispatchEvent(new Event('submit'));
+    }
+
+    // ==========================================
+    // 12. UTILITY FEATURES (Share, Copy, Print)
+    // ==========================================
+    function shareResults() {
+      // Create summary share text
+      const summary = `[AI PATHFINDER 진로탐색 결과]\n제 홀랜드 성향 진단은 ${state.topCodes[0]}${state.topCodes[1]}형 입니다! 맞춤형 AI 추천 커리어를 분석하고, 가이드에 맞춰 커리어를 도킹해 보세요!`;
+      
+      try {
+        const tempInput = document.createElement("input");
+        tempInput.value = window.location.href;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        
+        showToast("공유용 링크가 클립보드에 무사히 복사되었습니다!", "success");
+      } catch (e) {
+        showToast("공유하기 복사에 실패했습니다.", "error");
+      }
+    }
+
+    // ==========================================
+    // 13. APP ENTRY POINT
+    // ==========================================
+    window.onload = function() {
+      // Load saved user favorites
+      loadSavedState();
+      
+      // Initialize Lucide Icons
+      lucide.createIcons();
+
+      // Show landing home
+      navigateTo('home');
+    };
+  </script>
+</body>
+</html>
